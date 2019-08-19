@@ -4,55 +4,10 @@ const inquirer = require('inquirer');
 const chalk = require('chalk');
 const fs = require('fs');
 const path = require('path');
+const {exist, mkdirp, copyFile} = require('./public/publicDir');
 
-const htmlTemplate = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
-</head>
-<body>
-    
-</body>
-</html>
-`;
-
-const routerTemplate = `
-const express = require('express');
-const router = express.Router();
-
-router.get('/', (req, res, next) => {
-    try {
-        res.send('ok');
-    } catch(error) {
-        console.error(error);
-        next(error);
-    }
-});
-module.exports = router;
-`;
-
-const exist = (dir) => {
-    try {
-        fs.accessSync(dir, fs.constants.F_OK | fs.constants.R_OK | fs.constants.W_OK);
-        return true;
-    } catch (e) {
-        return false;
-    }
-};
-
-const mkdirp = (dir) => {
-    const dirname = path.relative('.', path.normalize(dir)).split(path.sep).filter(p => !!p);
-    dirname.forEach((d, idx) => {
-        const pathBuilder = dirname.slice(0, idx + 1).join(path.sep);
-        if (!exist(pathBuilder)) {
-            fs.mkdirSync(pathBuilder);
-        }
-    });
-};
+let htmlTemplate;
+let routerTemplate;
 
 const makeTemplate = (type, name, directory) => {
     mkdirp(directory);
@@ -65,7 +20,11 @@ const makeTemplate = (type, name, directory) => {
             // 블록킹이기때문에 다른 요청들이 블록킹이 된다.
             // cli같은 경우는 한 번만 실행되는 경우에는 Sync 메서드를 써도 된다.
             // 여러 번 동시에 호출 될 것 같으면 쓰지 않는게 좋다.
-            fs.writeFileSync(pathToFile, htmlTemplate);
+            fs.readFile('./template/htmlTemplate', (err, data) => {
+                if(err) throw err;
+                htmlTemplate = data.toString();
+                fs.writeFileSync(pathToFile, htmlTemplate);
+            });
             console.log(chalk.green(pathToFile,pathToFile, '생성 완료'));
         }
     } else if (type === 'express-router') {
@@ -73,7 +32,11 @@ const makeTemplate = (type, name, directory) => {
         if (exist(pathToFile)) {
             console.error('이미 해당 파일이 존재합니다.');
         } else {
-            fs.writeFileSync(pathToFile, routerTemplate);
+            fs.readFile('./template/routerTemplate', (err, data) => {
+                if(err) throw err;
+                routerTemplate = data.toString();
+                fs.writeFileSync(pathToFile, routerTemplate);
+            });
             console.log(chalk.green(pathToFile, "생성 완료"));
         }
     }
@@ -82,15 +45,22 @@ const makeTemplate = (type, name, directory) => {
     }
 };
 
+/*
+    --옵션 -단축옵션
+    <필수> [선택]
+
+    command: 명령어
+    usage : 설명서 
+    descripton: 메시지
+    alias: 단축키
+    option: 옵션
+    action: 수행 
+*/
 let triggered = false;
 program
     .version('0.0.1', '-v, --version')
     .usage('[options]');
 
-/*
-    --옵션 -단축옵션
-    <필수> [선택]
-*/
 program
     .command('template <type>')
     .usage('--name<name> --path [path]')
@@ -104,6 +74,15 @@ program
         triggered = true;
     });
 
+program
+    .command('copy <name> <directory>')
+    .usage('<name> <directory>')
+    .description('파일을 복사합니다.')
+    .action((name, directory) => {
+        copyFile(name, directory);
+        triggered = true;
+    });
+
 // noHelp가 true면 도움말에 해당 명령어 설명이 뜨지 않는다.
 program
     .command("*", { noHelp: true })
@@ -112,8 +91,6 @@ program
         program.help();
         triggered = true;
     });
-
-// 실행부
 program.parse(process.argv);
 
 // inquirer 만들기
