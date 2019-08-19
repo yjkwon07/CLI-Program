@@ -1,5 +1,6 @@
 const path = require('path');
 const fs = require('fs');
+const chalk = require('chalk');
 
 const exist = (dir) => {
     try {
@@ -26,9 +27,27 @@ const copyFile = (name , directory) => {
         fs.copyFile(name , path.join(directory, name), (err) =>{
             if(err) throw err;
         });
-        console.log(`${name} 파일이 복사되었습니다.`);
+        console.log(chalk.green(`${name} 파일이 복사되었습니다.`));
     }else {
-        console.log('파일이 존재하지 않아요.');
+        console.log(chalk.bold.red('파일이 존재하지 않습니다.'));
     }
 };
-module.exports = {exist, mkdirp, copyFile};
+
+const rimraf = (p) => {
+    if(exist(p)){
+        try{
+            const dir =fs.readdirSync(p);
+            dir.forEach((d) => {
+                rimraf(path.join(p, d));
+            });
+            fs.rmdirSync(p);
+            console.log(chalk.green(`${p} 폴더를 삭제했습니다.`));
+        }catch(e){
+            fs.unlinkSync(p);
+            console.log(chalk.green(`${p} 파일을 삭제했습니다.`));
+        }
+    }else {
+        console.log(chalk.bold.red('파일이 존재하지 않습나다.'));
+    }
+};
+module.exports = {exist, mkdirp, copyFile, rimraf};

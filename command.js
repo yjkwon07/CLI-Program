@@ -4,7 +4,7 @@ const inquirer = require('inquirer');
 const chalk = require('chalk');
 const fs = require('fs');
 const path = require('path');
-const {exist, mkdirp, copyFile} = require('./public/publicDir');
+const {exist, mkdirp, copyFile, rimraf} = require('./public/publicDir');
 
 let htmlTemplate;
 let routerTemplate;
@@ -82,6 +82,16 @@ program
         copyFile(name, directory);
         triggered = true;
     });
+
+// 경로를 지정하면 하위 모든 폴더와 파일을 지우는 명령어
+program
+    .command('rimraf <path>')
+    .usage('<path>')
+    .description('지정한 경로와 그 아래 파일/폴더를 지웁니다.')
+    .action( (path) => {
+        rimraf(path);
+        triggered=true;
+    })
 
 // noHelp가 true면 도움말에 해당 명령어 설명이 뜨지 않는다.
 program
