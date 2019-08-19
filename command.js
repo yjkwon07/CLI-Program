@@ -2,49 +2,7 @@
 const program = require('commander');
 const inquirer = require('inquirer');
 const chalk = require('chalk');
-const fs = require('fs');
-const path = require('path');
-const {exist, mkdirp, copyFile, rimraf} = require('./public/publicDir');
-
-let htmlTemplate;
-let routerTemplate;
-
-const makeTemplate = (type, name, directory) => {
-    mkdirp(directory);
-    if (type === 'html') {
-        const pathToFile = path.join(directory, `${name}.html`);
-        if (exist(pathToFile)) {
-            console.error(chalk.bold.red('이미 해당 파일이 존재 합니다.')); 
-        } else {
-            // 서버같은 경우 sync안쓰는게 좋다. 
-            // 블록킹이기때문에 다른 요청들이 블록킹이 된다.
-            // cli같은 경우는 한 번만 실행되는 경우에는 Sync 메서드를 써도 된다.
-            // 여러 번 동시에 호출 될 것 같으면 쓰지 않는게 좋다.
-            fs.readFile('./template/htmlTemplate', (err, data) => {
-                if(err) throw err;
-                htmlTemplate = data.toString();
-                fs.writeFileSync(pathToFile, htmlTemplate);
-            });
-            console.log(chalk.green(pathToFile,pathToFile, '생성 완료'));
-        }
-    } else if (type === 'express-router') {
-        const pathToFile = path.join(directory, `${name}.js`);
-        if (exist(pathToFile)) {
-            console.error('이미 해당 파일이 존재합니다.');
-        } else {
-            fs.readFile('./template/routerTemplate', (err, data) => {
-                if(err) throw err;
-                routerTemplate = data.toString();
-                fs.writeFileSync(pathToFile, routerTemplate);
-            });
-            console.log(chalk.green(pathToFile, "생성 완료"));
-        }
-    }
-    else {
-        console.error(chalk.green('html 또는 express-router 둘 중 하나를 입력하세요.'));
-    }
-};
-
+const {makeTemplate, copyFile, rimraf} = require('./command/commandSupport');
 /*
     --옵션 -단축옵션
     <필수> [선택]
