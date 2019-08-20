@@ -1,0 +1,30 @@
+{
+  "name": "cli-program",
+  "version": "1.0.0",
+  "description": "CLI Program toyproject",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yjkwon07/CLI-Program.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/yjkwon07/CLI-Program/issues"
+  },
+  "homepage": "https://github.com/yjkwon07/CLI-Program#readme",
+  "bin": {
+    "cli": "./command.js",
+    "wlt": "./wallet.js"
+  },
+  "dependencies": {
+    "chalk": "^2.4.2",
+    "commander": "^3.0.0",
+    "inquirer": "^6.5.1",
+    "mysql2": "^1.6.5",
+    "sequelize": "^5.15.1"
+  }
+}
